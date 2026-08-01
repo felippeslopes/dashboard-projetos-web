@@ -33,6 +33,21 @@ decisão relevante.
   reset de senha malicioso
 - Row Level Security (RLS) ativo no Supabase desde o primeiro dia:
   cada usuário só lê/escreve a própria configuração
+- Verificação do JWT do Supabase no backend via **JWKS** (JWT Signing
+  Keys assimétricas, ES256) — sem segredo compartilhado no backend;
+  `security.py` valida assinatura e extrai `user_id` (`sub`) a partir de
+  `https://<projeto>.supabase.co/auth/v1/.well-known/jwks.json`
+- RLS é o mecanismo de isolamento de fato, não só documentação: o
+  backend usa a **anon key** + o **JWT do próprio usuário** (repassado
+  via `postgrest.auth(token)`) para consultar `user_config` — não filtra
+  por `user_id` manualmente com a service key. A `SUPABASE_SERVICE_KEY`
+  fica reservada para tarefas administrativas (migrations), não é usada
+  em requisições normais
+- Acesso à planilha do usuário é feito por uma **service account** única
+  do backend (`GOOGLE_SHEETS_CREDENTIALS_JSON`), não por OAuth por
+  usuário — o usuário precisa compartilhar a planilha com o e-mail dessa
+  service account para o backend conseguir lê-la (instrução exibida na
+  tela "Conectar Planilha")
 
 ## Segurança — validação de entrada
 
@@ -49,7 +64,8 @@ decisão relevante.
 ## Segredos e variáveis de ambiente
 
 - Backend: `GOOGLE_SHEETS_CREDENTIALS_JSON`, `SUPABASE_URL`,
-  `SUPABASE_SERVICE_KEY` — nunca versionados, sempre via `.env`
+  `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_KEY`, `FRONTEND_ORIGIN` —
+  nunca versionados, sempre via `.env`
 - Frontend: apenas `SUPABASE_ANON_KEY` (pública por design, protegida
   por RLS) — nenhum secret sensível no cliente
 

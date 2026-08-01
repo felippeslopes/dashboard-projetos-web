@@ -6,6 +6,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     google_sheets_credentials_json: str
     supabase_url: str
+    supabase_anon_key: str
     supabase_service_key: str
     frontend_origin: str = "http://localhost:5173"
 

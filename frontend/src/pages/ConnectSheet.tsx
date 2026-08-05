@@ -1,16 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Navigate } from "react-router-dom";
 import { api } from "../services/api";
-
-interface UserConfigResponse {
-  sheet_id: string;
-  connected_at: string;
-}
-
-interface ConfigStatusResponse {
-  service_account_email: string;
-  config: UserConfigResponse | null;
-}
+import type { ConfigStatusResponse } from "../types/api";
 
 type Status = "loading" | "form" | "already-connected" | "error";
 

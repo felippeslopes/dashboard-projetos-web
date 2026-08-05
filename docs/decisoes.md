@@ -91,6 +91,13 @@ truncamento na resposta.
 | Link do SaaS | Open redirect / phishing | CORS restrito ao domínio do frontend; validação de qualquer redirect contra lista fixa de URLs permitidas |
 | Transporte | Interceptação de dados | HTTPS obrigatório em produção; headers de segurança (CSP, X-Content-Type-Options) |
 
+Dependências de frontend têm `npm audit` verificado a cada instalação. Uma
+vulnerabilidade conhecida foi aceita conscientemente: `react-router@7.18.2`
+(mais recente disponível) tem um CVE de "RSC Mode CSRF Bypass"
+(7.12.0–8.2.0) que não se aplica ao nosso uso — SPA puro via Vite, sem
+Server Components/data router/actions. Reavaliar quando uma versão
+corrigida for publicada.
+
 ## Segredos e variáveis de ambiente
 
 - Backend: `GOOGLE_SHEETS_CREDENTIALS_JSON`, `SUPABASE_URL`,

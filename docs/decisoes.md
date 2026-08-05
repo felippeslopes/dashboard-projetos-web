@@ -7,7 +7,8 @@ decisão relevante.
 ## Versão e escopo
 
 - **v0.1 (atual):** login Google (Supabase Auth) + 1 planilha Google
-  Sheets + 5 cards + tabela de projetos + gráfico de pizza por status
+  Sheets + 5 cards + tabela de tarefas (agrupadas por projeto) + gráfico
+  de pizza por status
 - **v0.2:** Excel Online / Microsoft Graph, demais gráficos, riscos,
   marcos, página de Configurações, sincronização automática
 - **v1.0:** Docker Compose, testes completos, tratamento de erro com
@@ -49,12 +50,41 @@ decisão relevante.
   service account para o backend conseguir lê-la (instrução exibida na
   tela "Conectar Planilha")
 
+## Schema da planilha (v0.1)
+
+Cada linha da planilha é uma **Tarefa** (não um projeto inteiro — um
+projeto pode ter várias tarefas). Cabeçalho esperado na primeira linha
+(nomes tolerantes a reordenação, acento e maiúsculas/minúsculas):
+
+| Coluna | Tipo | Papel |
+|---|---|---|
+| `Projeto` | texto | A qual projeto a tarefa pertence — agrupamento, sem lista fixa |
+| `Tarefa` | texto | Nome da tarefa — único campo obrigatório |
+| `Status` | categórico | `Planejado / Em andamento / Concluído / Atrasado / Cancelado` — alimenta o gráfico de pizza |
+| `Responsável` | texto | Informativo, aparece na tabela |
+| `Prazo` | data | Base do cálculo do card "Tarefas Atrasadas" |
+
+Os 5 cards do v0.1: Total de Tarefas, Tarefas em Andamento, Tarefas
+Concluídas, Tarefas Atrasadas (**calculado** por `prazo < hoje` e status
+não `Concluído`/`Cancelado` — não depende do usuário marcar "Atrasado"
+manualmente) e Taxa de Conclusão (%). O gráfico de pizza usa o `Status`
+bruto da planilha, com um bucket `"Outros"` para valores não reconhecidos
+— é uma métrica deliberadamente diferente do card "Atrasadas".
+
+Tolerância a erro linha a linha: linha em branco é ignorada
+silenciosamente; falta de `Tarefa` ignora a linha com aviso; `Prazo`
+vazio ou não parseável nunca derruba a linha (fica sem data, com aviso
+se o texto não era vazio); falta de qualquer uma das 5 colunas no
+cabeçalho é erro de configuração da planilha (422), não erro de linha.
+Limite de 2000 linhas processadas por requisição, com aviso de
+truncamento na resposta.
+
 ## Segurança — validação de entrada
 
 | Vetor | Risco | Mitigação |
 |---|---|---|
 | Link da planilha | SSRF (backend usado como proxy de ataque) | Extrair apenas o ID via regex; nunca fazer fetch da URL crua; chamar somente a API oficial (Google Sheets API / Microsoft Graph) com esse ID |
-| Conteúdo da planilha | Formula Injection (células iniciando com `=`, `+`, `-`, `@`) | Tratar todo conteúdo de célula como texto puro; escapar/prefixar essas células em qualquer export gerado |
+| Conteúdo da planilha | Formula Injection (células iniciando com `=`, `+`, `-`, `@`) | Leitura via Google Sheets API com `valueRenderOption="FORMATTED_VALUE"` — o backend sempre recebe o valor já calculado pelo Google, nunca a fórmula bruta, e nunca faz `eval`/interpretação do conteúdo |
 | Conteúdo da planilha | XSS via nome de projeto/campo livre | Nunca usar `dangerouslySetInnerHTML` com dado vindo da planilha; renderização padrão do React (que já escapa texto) |
 | Planilha muito grande | DoS por volume de linhas | Limite de linhas processadas + paginação, com mensagem amigável se exceder |
 | Cadastro/conexão | Automação abusiva (criação em massa) | Rate limiting nos endpoints de cadastro e conexão de planilha |

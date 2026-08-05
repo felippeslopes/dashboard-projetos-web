@@ -48,11 +48,19 @@ class SheetParseResult:
 
 
 @lru_cache
-def _sheets_service():
+def _credentials_info() -> dict:
     settings = get_settings()
-    info = json.loads(settings.google_sheets_credentials_json)
-    credentials = service_account.Credentials.from_service_account_info(info, scopes=SCOPES)
+    return json.loads(settings.google_sheets_credentials_json)
+
+
+@lru_cache
+def _sheets_service():
+    credentials = service_account.Credentials.from_service_account_info(_credentials_info(), scopes=SCOPES)
     return build("sheets", "v4", credentials=credentials, cache_discovery=False)
+
+
+def get_service_account_email() -> str:
+    return _credentials_info()["client_email"]
 
 
 def validate_sheet_access(sheet_id: str) -> None:

@@ -1,7 +1,7 @@
 import re
 
 from app.repositories import user_config_repo
-from app.schemas.user_config import UserConfigResponse
+from app.schemas.user_config import ConfigStatusResponse, UserConfigResponse
 from app.services import sheets_provider
 
 SHEET_URL_PATTERN = re.compile(r"^https://docs\.google\.com/spreadsheets/d/([a-zA-Z0-9_-]+)")
@@ -25,6 +25,13 @@ def get_current_config(user_id: str, access_token: str) -> UserConfigResponse | 
     if record is None:
         return None
     return UserConfigResponse(sheet_id=record.sheet_id, connected_at=record.connected_at)
+
+
+def get_status(user_id: str, access_token: str) -> ConfigStatusResponse:
+    return ConfigStatusResponse(
+        service_account_email=sheets_provider.get_service_account_email(),
+        config=get_current_config(user_id, access_token),
+    )
 
 
 def connect_sheet(sheet_url: str, user_id: str, access_token: str) -> UserConfigResponse:

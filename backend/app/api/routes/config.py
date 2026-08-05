@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 
 from app.core.rate_limit import limiter
 from app.core.security import AuthenticatedUser, get_current_user
-from app.schemas.user_config import ConnectSheetRequest, UserConfigResponse
+from app.schemas.user_config import ConfigStatusResponse, ConnectSheetRequest, UserConfigResponse
 from app.services import sheet_connection_service
 from app.services.sheet_connection_service import InvalidSheetUrlError
 from app.services.sheets_provider import SheetAccessError
@@ -10,9 +10,9 @@ from app.services.sheets_provider import SheetAccessError
 router = APIRouter(prefix="/config", tags=["config"])
 
 
-@router.get("", response_model=UserConfigResponse | None)
-def get_config(user: AuthenticatedUser = Depends(get_current_user)) -> UserConfigResponse | None:
-    return sheet_connection_service.get_current_config(user.user_id, user.access_token)
+@router.get("", response_model=ConfigStatusResponse)
+def get_config(user: AuthenticatedUser = Depends(get_current_user)) -> ConfigStatusResponse:
+    return sheet_connection_service.get_status(user.user_id, user.access_token)
 
 
 @router.post("", response_model=UserConfigResponse)

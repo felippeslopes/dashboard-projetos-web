@@ -10,3 +10,8 @@ class ConnectSheetRequest(BaseModel):
 class UserConfigResponse(BaseModel):
     sheet_id: str
     connected_at: datetime
+
+
+class ConfigStatusResponse(BaseModel):
+    service_account_email: str
+    config: UserConfigResponse | None

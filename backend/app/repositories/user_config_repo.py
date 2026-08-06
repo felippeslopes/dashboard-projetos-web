@@ -30,7 +30,7 @@ def get_config(user_id: str, access_token: str) -> UserConfigRecord | None:
         .maybe_single()
         .execute()
     )
-    if response.data is None:
+    if response is None or response.data is None:
         return None
     return UserConfigRecord(
         sheet_id=response.data["sheet_id"],

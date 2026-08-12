@@ -1,14 +1,18 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { api } from "../services/api";
-import type { ConfigStatusResponse } from "../types/api";
-import LogoutButton from "../components/LogoutButton";
+import type { ConfigStatusResponse, UserConfigResponse } from "../types/api";
 
-type Status = "loading" | "form" | "already-connected" | "error";
+type Status = "loading" | "form" | "redirect" | "error";
 
 export default function ConnectSheet() {
+  const [searchParams] = useSearchParams();
+  const forceReconnect = searchParams.get("trocar") === "1";
+  const navigate = useNavigate();
+
   const [status, setStatus] = useState<Status>("loading");
   const [serviceAccountEmail, setServiceAccountEmail] = useState("");
+  const [currentConfig, setCurrentConfig] = useState<UserConfigResponse | null>(null);
   const [sheetUrl, setSheetUrl] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
@@ -27,7 +31,14 @@ export default function ConnectSheet() {
         if (cancelled) return;
 
         setServiceAccountEmail(data.service_account_email);
-        setStatus(data.config ? "already-connected" : "form");
+
+        if (data.config && !forceReconnect) {
+          setStatus("redirect");
+          return;
+        }
+
+        setCurrentConfig(data.config);
+        setStatus("form");
       } catch (err) {
         if (cancelled) return;
         setLoadError(err instanceof Error ? err.message : "Erro inesperado.");
@@ -39,7 +50,7 @@ export default function ConnectSheet() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [forceReconnect]);
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
@@ -54,7 +65,7 @@ export default function ConnectSheet() {
         throw new Error(data.detail ?? "Não foi possível conectar a planilha.");
       }
 
-      setStatus("already-connected");
+      navigate("/dashboard", { replace: true });
     } catch (err) {
       setFormError(err instanceof Error ? err.message : "Erro inesperado.");
     } finally {
@@ -70,7 +81,7 @@ export default function ConnectSheet() {
     return <div>Carregando...</div>;
   }
 
-  if (status === "already-connected") {
+  if (status === "redirect") {
     return <Navigate to="/dashboard" replace />;
   }
 
@@ -80,10 +91,14 @@ export default function ConnectSheet() {
 
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <h1>Conectar Planilha</h1>
-        <LogoutButton />
-      </div>
+      <h1>Conectar Planilha</h1>
+
+      {currentConfig && (
+        <p role="status">
+          Planilha atualmente conectada: <code>{currentConfig.sheet_id}</code>.
+          Conectar uma nova planilha abaixo substitui essa conexão.
+        </p>
+      )}
 
       <ol>
         <li>Abra sua planilha do Google Sheets</li>

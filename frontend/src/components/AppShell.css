@@ -1,0 +1,32 @@
+.app-shell {
+  min-height: 100%;
+  position: relative;
+}
+
+.menu-trigger {
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  z-index: 20;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 8px;
+  border: 1px solid var(--rule);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 1.1rem;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  transition: border-color 150ms ease, color 150ms ease;
+}
+
+.menu-trigger:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.app-content {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 4.5rem 1.5rem 3rem;
+}

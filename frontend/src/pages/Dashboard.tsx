@@ -5,6 +5,7 @@ import type { DashboardResponse } from "../types/api";
 import ProjectStatCard from "../components/cards/ProjectStatCard";
 import ProjectsTable from "../components/table/ProjectsTable";
 import StatusPieChart from "../components/charts/StatusPieChart";
+import LogoutButton from "../components/LogoutButton";
 
 type Status = "loading" | "ready" | "no-sheet" | "error";
 
@@ -65,7 +66,10 @@ export default function Dashboard() {
 
   return (
     <div>
-      <h1>Dashboard</h1>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <h1>Dashboard</h1>
+        <LogoutButton />
+      </div>
 
       {data.planilha_truncada && (
         <p role="alert">

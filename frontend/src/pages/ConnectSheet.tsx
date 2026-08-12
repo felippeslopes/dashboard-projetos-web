@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { Navigate } from "react-router-dom";
 import { api } from "../services/api";
 import type { ConfigStatusResponse } from "../types/api";
+import LogoutButton from "../components/LogoutButton";
 
 type Status = "loading" | "form" | "already-connected" | "error";
 
@@ -79,7 +80,10 @@ export default function ConnectSheet() {
 
   return (
     <div>
-      <h1>Conectar Planilha</h1>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <h1>Conectar Planilha</h1>
+        <LogoutButton />
+      </div>
 
       <ol>
         <li>Abra sua planilha do Google Sheets</li>

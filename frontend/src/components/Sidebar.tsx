@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { useTheme } from "../contexts/ThemeContext";
@@ -14,6 +14,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const { user } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
+  const [avatarFailed, setAvatarFailed] = useState(false);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -47,8 +48,14 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
       />
       <aside className={`sidebar ${isOpen ? "sidebar--open" : ""}`} aria-hidden={!isOpen}>
         <div className="sidebar-profile">
-          {avatarUrl ? (
-            <img className="sidebar-avatar" src={avatarUrl} alt="" />
+          {avatarUrl && !avatarFailed ? (
+            <img
+              className="sidebar-avatar"
+              src={avatarUrl}
+              alt=""
+              referrerPolicy="no-referrer"
+              onError={() => setAvatarFailed(true)}
+            />
           ) : (
             <div className="sidebar-avatar sidebar-avatar--fallback" aria-hidden="true">
               {name.charAt(0).toUpperCase()}

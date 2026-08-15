@@ -2,6 +2,22 @@
   max-width: 620px;
 }
 
+.connect-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--ink-muted);
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin-bottom: 1rem;
+  transition: color 150ms ease;
+}
+
+.connect-back-link:hover {
+  color: var(--accent);
+}
+
 .connect-steps {
   display: flex;
   flex-direction: column;

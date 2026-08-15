@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { Navigate, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { api } from "../services/api";
 import type { ConfigStatusResponse, UserConfigResponse } from "../types/api";
 import "./ConnectSheet.css";
@@ -104,6 +104,12 @@ export default function ConnectSheet() {
 
   return (
     <div className="connect-sheet">
+      {currentConfig && (
+        <Link to="/dashboard" className="connect-back-link">
+          ← Voltar ao Dashboard
+        </Link>
+      )}
+
       <div className="page-header">
         <h1>Conectar Planilha</h1>
         <p>Aponte o sistema para a planilha do Google Sheets com suas tarefas.</p>

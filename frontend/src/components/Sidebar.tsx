@@ -65,10 +65,10 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         </div>
 
         <nav className="sidebar-actions">
-          <button type="button" onClick={toggleTheme}>
+          <button type="button" className="btn btn-block" onClick={toggleTheme}>
             {theme === "light" ? "Tema escuro" : "Tema claro"}
           </button>
-          <button type="button" onClick={handleSwitchSheet}>
+          <button type="button" className="btn btn-block" onClick={handleSwitchSheet}>
             Trocar planilha
           </button>
           <LogoutButton />

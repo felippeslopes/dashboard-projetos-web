@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { api } from "../services/api";
 import type { ConfigStatusResponse, UserConfigResponse } from "../types/api";
+import "./ConnectSheet.css";
 
 type Status = "loading" | "form" | "redirect" | "error";
 
@@ -17,6 +18,7 @@ export default function ConnectSheet() {
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -75,10 +77,17 @@ export default function ConnectSheet() {
 
   async function handleCopyEmail() {
     await navigator.clipboard.writeText(serviceAccountEmail);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   }
 
   if (status === "loading") {
-    return <div>Carregando...</div>;
+    return (
+      <div className="page-loading">
+        <span className="spinner" aria-hidden="true" />
+        Carregando...
+      </div>
+    );
   }
 
   if (status === "redirect") {
@@ -86,49 +95,85 @@ export default function ConnectSheet() {
   }
 
   if (status === "error") {
-    return <div role="alert">{loadError}</div>;
+    return (
+      <div className="alert alert-error" role="alert">
+        {loadError}
+      </div>
+    );
   }
 
   return (
-    <div>
-      <h1>Conectar Planilha</h1>
+    <div className="connect-sheet">
+      <div className="page-header">
+        <h1>Conectar Planilha</h1>
+        <p>Aponte o sistema para a planilha do Google Sheets com suas tarefas.</p>
+      </div>
 
       {currentConfig && (
-        <p role="status">
+        <p className="alert alert-warning" role="status">
           Planilha atualmente conectada: <code>{currentConfig.sheet_id}</code>.
           Conectar uma nova planilha abaixo substitui essa conexão.
         </p>
       )}
 
-      <ol>
-        <li>Abra sua planilha do Google Sheets</li>
-        <li>
-          Clique em &quot;Compartilhar&quot; e adicione o e-mail abaixo com
-          permissão de leitor:
-          <div>
-            <code>{serviceAccountEmail}</code>
-            <button type="button" onClick={handleCopyEmail}>
-              Copiar
-            </button>
+      <div className="connect-steps">
+        <div className="card connect-step">
+          <span className="connect-step-number">1</span>
+          <div className="connect-step-body">
+            <p>Abra sua planilha do Google Sheets.</p>
           </div>
-        </li>
-        <li>Cole abaixo o link da planilha compartilhada</li>
-      </ol>
+        </div>
 
-      <form onSubmit={handleSubmit}>
-        <input
-          type="url"
-          placeholder="https://docs.google.com/spreadsheets/d/..."
-          value={sheetUrl}
-          onChange={(event) => setSheetUrl(event.target.value)}
-          required
-        />
-        <button type="submit" disabled={submitting}>
-          {submitting ? "Conectando..." : "Conectar"}
-        </button>
+        <div className="card connect-step">
+          <span className="connect-step-number">2</span>
+          <div className="connect-step-body">
+            <p>
+              Clique em &quot;Compartilhar&quot; e adicione o e-mail abaixo com
+              permissão de leitor:
+            </p>
+            <div className="connect-email-row">
+              <code className="code-chip">{serviceAccountEmail}</code>
+              <button type="button" className="btn" onClick={handleCopyEmail}>
+                {copied ? "Copiado!" : "Copiar"}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="card connect-step">
+          <span className="connect-step-number">3</span>
+          <div className="connect-step-body">
+            <p>Cole abaixo o link da planilha compartilhada.</p>
+          </div>
+        </div>
+      </div>
+
+      <form className="card connect-form" onSubmit={handleSubmit}>
+        <div className="field">
+          <label htmlFor="sheet-url">Link da planilha</label>
+          <input
+            id="sheet-url"
+            className="input"
+            type="url"
+            placeholder="https://docs.google.com/spreadsheets/d/..."
+            value={sheetUrl}
+            onChange={(event) => setSheetUrl(event.target.value)}
+            required
+          />
+        </div>
+
+        {formError && (
+          <p className="alert alert-error" role="alert">
+            {formError}
+          </p>
+        )}
+
+        <div className="connect-form-actions">
+          <button type="submit" className="btn btn-primary" disabled={submitting}>
+            {submitting ? "Conectando..." : "Conectar"}
+          </button>
+        </div>
       </form>
-
-      {formError && <p role="alert">{formError}</p>}
     </div>
   );
 }

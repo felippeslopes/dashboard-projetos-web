@@ -1,0 +1,48 @@
+.table-card {
+  padding: 0;
+  overflow: hidden;
+}
+
+.table-scroll {
+  overflow-x: auto;
+}
+
+.projects-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.projects-table th {
+  text-align: left;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink-muted);
+  font-weight: 600;
+  padding: 0.85rem 1.1rem;
+  border-bottom: 1px solid var(--rule);
+  white-space: nowrap;
+}
+
+.projects-table td {
+  padding: 0.75rem 1.1rem;
+  border-bottom: 1px solid var(--rule);
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+.projects-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.projects-table tbody tr:hover {
+  background: var(--paper);
+}
+
+.projects-table-empty {
+  padding: 2rem 1.1rem;
+  text-align: center;
+  color: var(--ink-muted);
+  margin: 0;
+}

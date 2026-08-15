@@ -77,20 +77,7 @@
   gap: 0.5rem;
 }
 
-.sidebar-actions button {
-  appearance: none;
-  text-align: left;
-  border: 1px solid var(--rule);
+.sidebar-actions .btn {
+  justify-content: flex-start;
   background: var(--paper);
-  color: var(--ink);
-  border-radius: 8px;
-  padding: 0.65rem 0.85rem;
-  cursor: pointer;
-  font-size: 0.875rem;
-  transition: border-color 150ms ease, color 150ms ease;
-}
-
-.sidebar-actions button:hover {
-  border-color: var(--accent);
-  color: var(--accent);
 }

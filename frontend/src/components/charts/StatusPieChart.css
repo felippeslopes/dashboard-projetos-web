@@ -1,0 +1,40 @@
+.chart-card {
+  padding: 1.25rem 1.25rem 0.5rem;
+}
+
+.chart-card h2 {
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.chart-empty {
+  color: var(--ink-muted);
+  font-size: 0.875rem;
+  padding: 1.5rem 0;
+  margin: 0;
+}
+
+.chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.1rem;
+  justify-content: center;
+  list-style: none;
+  margin: 0;
+  padding: 0 0 1rem;
+  font-size: 0.8rem;
+}
+
+.chart-legend li {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--ink-muted);
+}
+
+.chart-legend-swatch {
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 2px;
+  flex-shrink: 0;
+}

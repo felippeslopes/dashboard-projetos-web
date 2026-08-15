@@ -5,6 +5,7 @@ import type { DashboardResponse } from "../types/api";
 import ProjectStatCard from "../components/cards/ProjectStatCard";
 import ProjectsTable from "../components/table/ProjectsTable";
 import StatusPieChart from "../components/charts/StatusPieChart";
+import "./Dashboard.css";
 
 type Status = "loading" | "ready" | "no-sheet" | "error";
 
@@ -48,7 +49,12 @@ export default function Dashboard() {
   }, []);
 
   if (status === "loading") {
-    return <div>Carregando...</div>;
+    return (
+      <div className="page-loading">
+        <span className="spinner" aria-hidden="true" />
+        Carregando dashboard...
+      </div>
+    );
   }
 
   if (status === "no-sheet") {
@@ -56,7 +62,11 @@ export default function Dashboard() {
   }
 
   if (status === "error") {
-    return <div role="alert">{errorMessage}</div>;
+    return (
+      <div className="alert alert-error dashboard-error" role="alert">
+        {errorMessage}
+      </div>
+    );
   }
 
   if (!data) {
@@ -65,25 +75,34 @@ export default function Dashboard() {
 
   return (
     <div>
-      <h1>Dashboard</h1>
+      <div className="page-header">
+        <h1>Dashboard</h1>
+        <p>Visão geral das tarefas conectadas à sua planilha.</p>
+      </div>
 
-      {data.planilha_truncada && (
-        <p role="alert">
-          A planilha tem mais linhas do que o limite processado — só as
-          primeiras 2000 linhas de dados foram consideradas.
-        </p>
+      {(data.planilha_truncada || data.avisos.length > 0) && (
+        <div className="dashboard-notices">
+          {data.planilha_truncada && (
+            <p className="alert alert-warning" role="alert">
+              A planilha tem mais linhas do que o limite processado — só as
+              primeiras 2000 linhas de dados foram consideradas.
+            </p>
+          )}
+
+          {data.avisos.length > 0 && (
+            <div className="alert alert-warning" role="alert">
+              <ul>
+                {data.avisos.map((aviso) => (
+                  <li key={aviso}>{aviso}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
       )}
 
-      {data.avisos.length > 0 && (
-        <ul>
-          {data.avisos.map((aviso) => (
-            <li key={aviso}>{aviso}</li>
-          ))}
-        </ul>
-      )}
-
-      <div>
-        <ProjectStatCard label="Total de Tarefas" value={data.cards.total_tarefas} />
+      <div className="stat-grid">
+        <ProjectStatCard label="Total de Tarefas" value={data.cards.total_tarefas} accent />
         <ProjectStatCard label="Em Andamento" value={data.cards.em_andamento} />
         <ProjectStatCard label="Concluídas" value={data.cards.concluidas} />
         <ProjectStatCard label="Atrasadas" value={data.cards.atrasadas} />
@@ -93,9 +112,10 @@ export default function Dashboard() {
         />
       </div>
 
-      <StatusPieChart data={data.grafico_status} />
-
-      <ProjectsTable tarefas={data.tarefas} />
+      <div className="dashboard-main">
+        <StatusPieChart data={data.grafico_status} />
+        <ProjectsTable tarefas={data.tarefas} />
+      </div>
     </div>
   );
 }

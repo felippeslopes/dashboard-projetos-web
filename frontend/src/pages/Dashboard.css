@@ -1,0 +1,27 @@
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.dashboard-notices {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-bottom: 1.5rem;
+}
+
+.dashboard-notices ul {
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+.dashboard-main {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.dashboard-error {
+  margin-top: 1rem;
+}

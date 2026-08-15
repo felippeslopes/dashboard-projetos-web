@@ -2,20 +2,23 @@
   max-width: 620px;
 }
 
-.connect-back-link {
-  display: inline-flex;
+.connect-header {
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 0.35rem;
-  color: var(--ink-muted);
-  text-decoration: none;
-  font-size: 0.85rem;
-  font-weight: 500;
-  margin-bottom: 1rem;
-  transition: color 150ms ease;
+  justify-content: space-between;
+  gap: 0.75rem 1rem;
 }
 
-.connect-back-link:hover {
-  color: var(--accent);
+.connect-header h1 {
+  flex: 1;
+  min-width: 200px;
+}
+
+.connect-back-link {
+  text-decoration: none;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .connect-steps {

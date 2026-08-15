@@ -104,14 +104,16 @@ export default function ConnectSheet() {
 
   return (
     <div className="connect-sheet">
-      {currentConfig && (
-        <Link to="/dashboard" className="connect-back-link">
-          ← Voltar ao Dashboard
-        </Link>
-      )}
-
       <div className="page-header">
-        <h1>Conectar Planilha</h1>
+        <div className="connect-header">
+          <h1>Conectar Planilha</h1>
+
+          {currentConfig && (
+            <Link to="/dashboard" className="btn connect-back-link">
+              <span aria-hidden="true">←</span> Voltar ao Dashboard
+            </Link>
+          )}
+        </div>
         <p>Aponte o sistema para a planilha do Google Sheets com suas tarefas.</p>
       </div>
 

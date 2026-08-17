@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { api } from "../services/api";
-import type { DashboardResponse } from "../types/api";
+import type { DashboardResponse, Tarefa } from "../types/api";
 import ColdStartLoader from "../components/ColdStartLoader";
 import ProjectStatCard from "../components/cards/ProjectStatCard";
 import ProjectsTable from "../components/table/ProjectsTable";
@@ -23,6 +23,7 @@ export default function Dashboard() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [filters, setFilters] = useState<TaskFiltersState>(DEFAULT_FILTERS);
   const [view, setView] = useState<View>("tabela");
+  const [kanbanError, setKanbanError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -79,6 +80,47 @@ export default function Dashboard() {
   }
 
   const filteredTarefas = applyFilters(data.tarefas, filters);
+
+  async function handleStatusChange(tarefa: Tarefa, novoStatus: string) {
+    const previousStatus = tarefa.status;
+    setKanbanError(null);
+    setData((current) =>
+      current
+        ? {
+            ...current,
+            tarefas: current.tarefas.map((t) =>
+              t.linha_planilha === tarefa.linha_planilha ? { ...t, status: novoStatus } : t,
+            ),
+          }
+        : current,
+    );
+
+    try {
+      const response = await api.patch(
+        `/dashboard/tarefas/${tarefa.linha_planilha}/status`,
+        { status: novoStatus, status_esperado: previousStatus },
+      );
+
+      if (!response.ok) {
+        const body = await response.json().catch(() => null);
+        throw new Error(body?.detail ?? "Não foi possível salvar a alteração.");
+      }
+    } catch (err) {
+      setData((current) =>
+        current
+          ? {
+              ...current,
+              tarefas: current.tarefas.map((t) =>
+                t.linha_planilha === tarefa.linha_planilha
+                  ? { ...t, status: previousStatus }
+                  : t,
+              ),
+            }
+          : current,
+      );
+      setKanbanError(err instanceof Error ? err.message : "Erro inesperado.");
+    }
+  }
 
   return (
     <div>
@@ -150,10 +192,16 @@ export default function Dashboard() {
           showGroupBy={view === "tabela"}
         />
 
+        {view === "kanban" && kanbanError && (
+          <p className="alert alert-error" role="alert">
+            {kanbanError}
+          </p>
+        )}
+
         {view === "tabela" ? (
           <ProjectsTable tarefas={filteredTarefas} groupBy={filters.groupBy} />
         ) : (
-          <KanbanBoard tarefas={filteredTarefas} />
+          <KanbanBoard tarefas={filteredTarefas} onStatusChange={handleStatusChange} />
         )}
       </div>
     </div>

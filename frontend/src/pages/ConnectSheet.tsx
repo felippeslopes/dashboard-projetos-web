@@ -133,7 +133,8 @@ export default function ConnectSheet() {
           <div className="connect-step-body">
             <p>
               Clique em &quot;Compartilhar&quot; e adicione o e-mail abaixo com
-              permissão de leitor:
+              permissão de <strong>Editor</strong> (necessário para o Kanban
+              salvar mudanças de status na planilha):
             </p>
             <div className="connect-email-row">
               <code className="code-chip">{serviceAccountEmail}</code>

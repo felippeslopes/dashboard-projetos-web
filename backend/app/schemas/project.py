@@ -31,3 +31,8 @@ class DashboardResponse(BaseModel):
     grafico_status: list[StatusBreakdown]
     avisos: list[str] = []
     planilha_truncada: bool = False
+
+
+class UpdateStatusRequest(BaseModel):
+    status: str
+    status_esperado: str

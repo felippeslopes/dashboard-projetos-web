@@ -27,6 +27,31 @@ decisão relevante.
 - Camada de abstração de provedores de dados, permitindo trocar/adicionar
   fontes (Excel Online, banco relacional) sem alterar o frontend
 
+## Escrita na planilha (exceção ao read-only)
+
+O sistema era estritamente leitura até a introdução do Kanban. Avaliamos e
+**adiamos deliberadamente** edição livre de qualquer célula, histórico de
+edições e múltiplos usuários na mesma planilha — todas exigiriam banco
+relacional e/ou controle de concorrência que não valem o custo nesta fase
+do produto. A única escrita implementada é estreita por design:
+
+- **Escopo único:** só o campo `Status` de uma linha, só a partir da
+  interação de arrastar um card entre colunas no Kanban — nenhum outro
+  campo é editável pelo SaaS
+- **`SCOPES`** em `sheets_provider.py` mudou de
+  `spreadsheets.readonly` para `spreadsheets` (leitura+escrita). A
+  service account passa a precisar de permissão de **Editor** na
+  planilha do usuário, não mais só Leitor — instrução atualizada na tela
+  "Conectar Planilha"
+- **Conflito, não sobrescrita silenciosa:** antes de escrever,
+  `update_status` lê o valor atual da célula e compara com o status que o
+  frontend tinha no momento em que o usuário começou a arrastar o card
+  (`status_esperado`). Se divergir — alguém mudou o dado nesse meio tempo,
+  seja por outro usuário do SaaS ou editando a planilha diretamente — a
+  escrita é recusada (HTTP 409) em vez de sobrescrever; o frontend desfaz
+  o movimento otimista do card e avisa o usuário. É a estratégia
+  "last-write-wins com aviso", não silenciosa
+
 ## Autenticação
 
 - Login exclusivamente via OAuth (Google / Microsoft), sem senha própria

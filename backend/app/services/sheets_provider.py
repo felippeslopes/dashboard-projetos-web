@@ -10,7 +10,7 @@ from googleapiclient.discovery import build
 from app.core.config import get_settings
 from app.schemas.project import Tarefa
 
-SCOPES = ["https://www.googleapis.com/auth/spreadsheets.readonly"]
+SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
 
 MAX_DATA_ROWS = 2000
 DATA_RANGE = f"A1:Z{MAX_DATA_ROWS + 1}"
@@ -37,6 +37,12 @@ class SheetAccessError(Exception):
 
 
 class SheetStructureError(Exception):
+    pass
+
+
+class SheetConflictError(Exception):
+    """O valor na planilha mudou desde que o cliente carregou a tela."""
+
     pass
 
 
@@ -187,3 +193,82 @@ def fetch_tarefas(sheet_id: str) -> SheetParseResult:
             avisos.append(aviso)
 
     return SheetParseResult(tarefas=tarefas, avisos=avisos, truncada=truncada)
+
+
+def _column_letter(index: int) -> str:
+    """Converte um indice de coluna 0-based em letra (0 -> A, 25 -> Z).
+
+    Suficiente porque DATA_RANGE limita a leitura as colunas A:Z.
+    """
+    return chr(ord("A") + index)
+
+
+def _status_column_letter(sheet_id: str) -> str:
+    try:
+        result = (
+            _sheets_service()
+            .spreadsheets()
+            .values()
+            .get(spreadsheetId=sheet_id, range="A1:Z1", valueRenderOption="FORMATTED_VALUE")
+            .execute()
+        )
+    except Exception as exc:
+        raise SheetAccessError(
+            "Não foi possível acessar a planilha. Verifique se o link está correto e se "
+            "a planilha foi compartilhada com o e-mail de serviço do sistema."
+        ) from exc
+
+    header_row = result.get("values", [[]])[0] if result.get("values") else []
+    column_index = _map_header(header_row)
+    return _column_letter(column_index["status"])
+
+
+def update_status(
+    sheet_id: str, linha_planilha: int, novo_status: str, status_esperado: str
+) -> None:
+    """Atualiza apenas a celula de status de uma linha, com checagem de conflito.
+
+    Le o valor atual da celula antes de escrever e compara com
+    `status_esperado` (o status que o cliente tinha quando iniciou a edicao).
+    Se for diferente, alguem alterou esse dado nesse meio tempo -- levanta
+    SheetConflictError em vez de sobrescrever (estrategia "last-write-wins
+    com aviso", nao silenciosa).
+    """
+    column = _status_column_letter(sheet_id)
+    cell_range = f"{column}{linha_planilha}"
+
+    try:
+        current = (
+            _sheets_service()
+            .spreadsheets()
+            .values()
+            .get(spreadsheetId=sheet_id, range=cell_range, valueRenderOption="FORMATTED_VALUE")
+            .execute()
+        )
+    except Exception as exc:
+        raise SheetAccessError(
+            "Não foi possível acessar a planilha. Verifique se o link está correto e se "
+            "a planilha foi compartilhada com o e-mail de serviço do sistema."
+        ) from exc
+
+    values = current.get("values", [])
+    current_value = values[0][0].strip() if values and values[0] else ""
+
+    if current_value != status_esperado.strip():
+        raise SheetConflictError(
+            "Esse dado foi alterado por outra pessoa enquanto você editava. "
+            "Recarregue a página para ver o valor atual."
+        )
+
+    try:
+        _sheets_service().spreadsheets().values().update(
+            spreadsheetId=sheet_id,
+            range=cell_range,
+            valueInputOption="USER_ENTERED",
+            body={"values": [[novo_status]]},
+        ).execute()
+    except Exception as exc:
+        raise SheetAccessError(
+            "Não foi possível salvar a alteração. Verifique se a planilha foi "
+            "compartilhada com permissão de Editor para o e-mail de serviço do sistema."
+        ) from exc

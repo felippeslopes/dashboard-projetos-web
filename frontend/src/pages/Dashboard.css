@@ -25,3 +25,37 @@
 .dashboard-error {
   margin-top: 1rem;
 }
+
+.view-switch {
+  display: inline-flex;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+  width: fit-content;
+  margin-bottom: -0.5rem;
+}
+
+.view-switch-btn {
+  appearance: none;
+  border: none;
+  background: none;
+  color: var(--ink-muted);
+  font-size: 0.85rem;
+  font-weight: 500;
+  padding: 0.4rem 0.9rem;
+  border-radius: calc(var(--radius-sm) - 4px);
+  cursor: pointer;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+.view-switch-btn:hover {
+  color: var(--ink);
+}
+
+.view-switch-btn--active {
+  background: var(--surface);
+  color: var(--accent);
+  box-shadow: var(--shadow);
+}

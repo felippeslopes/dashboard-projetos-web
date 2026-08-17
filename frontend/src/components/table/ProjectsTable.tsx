@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import type { Tarefa } from "../../types/api";
 import { statusClass, compareStatus } from "../../lib/status";
+import { formatPrazo } from "../../lib/date";
 import type { GroupBy } from "../filters/TaskFilters";
 import "./ProjectsTable.css";
 
@@ -19,12 +20,6 @@ const COLUMNS: { field: SortField; label: string }[] = [
   { field: "responsavel", label: "Responsável" },
   { field: "prazo", label: "Prazo" },
 ];
-
-function formatPrazo(prazo: string | null): string {
-  if (!prazo) return "—";
-  const [year, month, day] = prazo.split("-");
-  return `${day}/${month}/${year}`;
-}
 
 function compareTarefas(a: Tarefa, b: Tarefa, field: SortField): number {
   if (field === "status") return compareStatus(a.status, b.status);

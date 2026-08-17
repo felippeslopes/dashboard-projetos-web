@@ -6,6 +6,7 @@ import ColdStartLoader from "../components/ColdStartLoader";
 import ProjectStatCard from "../components/cards/ProjectStatCard";
 import ProjectsTable from "../components/table/ProjectsTable";
 import StatusPieChart from "../components/charts/StatusPieChart";
+import KanbanBoard from "../components/kanban/KanbanBoard";
 import TaskFilters, {
   DEFAULT_FILTERS,
   applyFilters,
@@ -14,12 +15,14 @@ import TaskFilters, {
 import "./Dashboard.css";
 
 type Status = "loading" | "ready" | "no-sheet" | "error";
+type View = "tabela" | "kanban";
 
 export default function Dashboard() {
   const [status, setStatus] = useState<Status>("loading");
   const [data, setData] = useState<DashboardResponse | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [filters, setFilters] = useState<TaskFiltersState>(DEFAULT_FILTERS);
+  const [view, setView] = useState<View>("tabela");
 
   useEffect(() => {
     let cancelled = false;
@@ -118,8 +121,40 @@ export default function Dashboard() {
 
       <div className="dashboard-main">
         <StatusPieChart data={data.grafico_status} />
-        <TaskFilters tarefas={data.tarefas} value={filters} onChange={setFilters} />
-        <ProjectsTable tarefas={filteredTarefas} groupBy={filters.groupBy} />
+
+        <div className="view-switch" role="tablist" aria-label="Modo de visualização">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={view === "tabela"}
+            className={`view-switch-btn ${view === "tabela" ? "view-switch-btn--active" : ""}`}
+            onClick={() => setView("tabela")}
+          >
+            Tabela
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={view === "kanban"}
+            className={`view-switch-btn ${view === "kanban" ? "view-switch-btn--active" : ""}`}
+            onClick={() => setView("kanban")}
+          >
+            Kanban
+          </button>
+        </div>
+
+        <TaskFilters
+          tarefas={data.tarefas}
+          value={filters}
+          onChange={setFilters}
+          showGroupBy={view === "tabela"}
+        />
+
+        {view === "tabela" ? (
+          <ProjectsTable tarefas={filteredTarefas} groupBy={filters.groupBy} />
+        ) : (
+          <KanbanBoard tarefas={filteredTarefas} />
+        )}
       </div>
     </div>
   );

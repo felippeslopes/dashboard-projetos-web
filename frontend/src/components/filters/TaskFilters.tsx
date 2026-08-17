@@ -25,6 +25,7 @@ interface TaskFiltersProps {
   tarefas: Tarefa[];
   value: TaskFiltersState;
   onChange: (next: TaskFiltersState) => void;
+  showGroupBy?: boolean;
 }
 
 function uniqueSorted(values: string[]): string[] {
@@ -46,7 +47,12 @@ export function isFiltersActive(filters: TaskFiltersState): boolean {
   );
 }
 
-export default function TaskFilters({ tarefas, value, onChange }: TaskFiltersProps) {
+export default function TaskFilters({
+  tarefas,
+  value,
+  onChange,
+  showGroupBy = true,
+}: TaskFiltersProps) {
   const projetos = useMemo(() => uniqueSorted(tarefas.map((t) => t.projeto)), [tarefas]);
   const responsaveis = useMemo(
     () => uniqueSorted(tarefas.map((t) => t.responsavel)),
@@ -103,19 +109,21 @@ export default function TaskFilters({ tarefas, value, onChange }: TaskFiltersPro
           ))}
         </select>
 
-        <select
-          className="input"
-          value={value.groupBy}
-          onChange={(event) =>
-            onChange({ ...value, groupBy: event.target.value as GroupBy })
-          }
-          aria-label="Agrupar por"
-        >
-          <option value="none">Sem agrupamento</option>
-          <option value="status">Agrupar por status</option>
-          <option value="responsavel">Agrupar por responsável</option>
-          <option value="projeto">Agrupar por projeto</option>
-        </select>
+        {showGroupBy && (
+          <select
+            className="input"
+            value={value.groupBy}
+            onChange={(event) =>
+              onChange({ ...value, groupBy: event.target.value as GroupBy })
+            }
+            aria-label="Agrupar por"
+          >
+            <option value="none">Sem agrupamento</option>
+            <option value="status">Agrupar por status</option>
+            <option value="responsavel">Agrupar por responsável</option>
+            <option value="projeto">Agrupar por projeto</option>
+          </select>
+        )}
 
         {isFiltersActive(value) && (
           <button

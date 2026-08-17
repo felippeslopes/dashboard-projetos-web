@@ -52,6 +52,22 @@ do produto. A única escrita implementada é estreita por design:
   o movimento otimista do card e avisa o usuário. É a estratégia
   "last-write-wins com aviso", não silenciosa
 
+## Histórico de tendência (exceção pontual ao "sem banco relacional")
+
+Para o gráfico de Tendência, o backend grava um "retrato" diário dos
+cards (`total`, `em_andamento`, `concluídas`, `atrasadas`,
+`taxa_conclusão`) na tabela `dashboard_snapshots` do Supabase, uma linha
+por usuário por dia (upsert em cada carregamento do dashboard). Isso não
+viola a decisão de "planilha é fonte de verdade, sem banco relacional
+para dados de projeto": o que é salvo é métrica agregada do uso do
+SaaS (um número por dia), não as tarefas em si — mesmo raciocínio já
+usado para justificar o log de auditoria. RLS no mesmo padrão de
+`user_config` (usuário só vê/escreve a própria linha, via anon key +
+JWT do usuário). A gravação/leitura do histórico é tratada como
+complemento opcional: se a tabela não existir ou a chamada falhar por
+qualquer motivo, o dashboard principal continua funcionando
+normalmente e o histórico simplesmente fica vazio.
+
 ## Autenticação
 
 - Login exclusivamente via OAuth (Google / Microsoft), sem senha própria

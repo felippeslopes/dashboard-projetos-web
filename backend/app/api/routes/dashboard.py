@@ -2,8 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 
 from app.core.rate_limit import limiter
 from app.core.security import AuthenticatedUser, get_current_user
-from app.repositories import user_config_repo
-from app.schemas.project import DashboardResponse, UpdateStatusRequest
+from app.repositories import snapshot_repo, user_config_repo
+from app.schemas.project import DashboardResponse, HistoricoPonto, UpdateStatusRequest
 from app.services import dashboard_service, sheets_provider
 from app.services.sheets_provider import SheetAccessError, SheetConflictError, SheetStructureError
 
@@ -26,6 +26,25 @@ def get_dashboard(user: AuthenticatedUser = Depends(get_current_user)) -> Dashbo
 
     resultado = dashboard_service.build_dashboard(parsed.tarefas)
 
+    historico: list[HistoricoPonto] = []
+    try:
+        snapshot_repo.upsert_snapshot(user.user_id, user.access_token, resultado.cards)
+        historico = [
+            HistoricoPonto(
+                data=registro.snapshot_date,
+                total_tarefas=registro.total_tarefas,
+                concluidas=registro.concluidas,
+                atrasadas=registro.atrasadas,
+                taxa_conclusao=registro.taxa_conclusao,
+            )
+            for registro in snapshot_repo.list_snapshots(user.user_id, user.access_token)
+        ]
+    except Exception:
+        # Historico e um complemento opcional -- se a tabela ainda nao existe
+        # no Supabase (ou qualquer outra falha de infraestrutura), o
+        # dashboard principal nao deve quebrar por causa disso.
+        historico = []
+
     return DashboardResponse(
         cards=resultado.cards,
         tarefas=parsed.tarefas,
@@ -33,6 +52,7 @@ def get_dashboard(user: AuthenticatedUser = Depends(get_current_user)) -> Dashbo
         grafico_projeto=resultado.grafico_projeto,
         grafico_responsavel=resultado.grafico_responsavel,
         grafico_prazo=resultado.grafico_prazo,
+        historico=historico,
         avisos=parsed.avisos,
         planilha_truncada=parsed.truncada,
     )

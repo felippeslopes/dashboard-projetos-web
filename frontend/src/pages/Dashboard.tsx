@@ -8,6 +8,7 @@ import ProjectsTable from "../components/table/ProjectsTable";
 import StatusPieChart from "../components/charts/StatusPieChart";
 import GroupBarChart from "../components/charts/GroupBarChart";
 import TimelineBarChart from "../components/charts/TimelineBarChart";
+import TrendChart from "../components/charts/TrendChart";
 import KanbanBoard from "../components/kanban/KanbanBoard";
 import TaskFilters, {
   DEFAULT_FILTERS,
@@ -172,6 +173,7 @@ export default function Dashboard() {
         </div>
 
         <TimelineBarChart data={data.grafico_prazo} />
+        <TrendChart historico={data.historico} />
 
         <div className="view-switch" role="tablist" aria-label="Modo de visualização">
           <button

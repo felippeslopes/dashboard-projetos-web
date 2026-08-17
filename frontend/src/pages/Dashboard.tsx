@@ -5,6 +5,11 @@ import type { DashboardResponse } from "../types/api";
 import ProjectStatCard from "../components/cards/ProjectStatCard";
 import ProjectsTable from "../components/table/ProjectsTable";
 import StatusPieChart from "../components/charts/StatusPieChart";
+import TaskFilters, {
+  DEFAULT_FILTERS,
+  applyFilters,
+  type TaskFiltersState,
+} from "../components/filters/TaskFilters";
 import "./Dashboard.css";
 
 type Status = "loading" | "ready" | "no-sheet" | "error";
@@ -13,6 +18,7 @@ export default function Dashboard() {
   const [status, setStatus] = useState<Status>("loading");
   const [data, setData] = useState<DashboardResponse | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [filters, setFilters] = useState<TaskFiltersState>(DEFAULT_FILTERS);
 
   useEffect(() => {
     let cancelled = false;
@@ -73,6 +79,8 @@ export default function Dashboard() {
     return null;
   }
 
+  const filteredTarefas = applyFilters(data.tarefas, filters);
+
   return (
     <div>
       <div className="page-header">
@@ -114,7 +122,8 @@ export default function Dashboard() {
 
       <div className="dashboard-main">
         <StatusPieChart data={data.grafico_status} />
-        <ProjectsTable tarefas={data.tarefas} />
+        <TaskFilters tarefas={data.tarefas} value={filters} onChange={setFilters} />
+        <ProjectsTable tarefas={filteredTarefas} groupBy={filters.groupBy} />
       </div>
     </div>
   );

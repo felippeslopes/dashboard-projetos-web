@@ -1,3 +1,11 @@
+export const CANONICAL_STATUS_ORDER = [
+  "Planejado",
+  "Em andamento",
+  "Concluído",
+  "Atrasado",
+  "Cancelado",
+];
+
 const STATUS_CLASSES: Record<string, string> = {
   "planejado": "status-planejado",
   "em andamento": "status-em-andamento",
@@ -9,6 +17,15 @@ const STATUS_CLASSES: Record<string, string> = {
 
 export function statusClass(status: string): string {
   return STATUS_CLASSES[status.trim().toLowerCase()] ?? "status-outros";
+}
+
+export function compareStatus(a: string, b: string): number {
+  const ia = CANONICAL_STATUS_ORDER.indexOf(a);
+  const ib = CANONICAL_STATUS_ORDER.indexOf(b);
+  if (ia !== -1 && ib !== -1) return ia - ib;
+  if (ia !== -1) return -1;
+  if (ib !== -1) return 1;
+  return a.localeCompare(b, "pt-BR");
 }
 
 // SVG presentation attributes (unlike the `style` attribute) don't resolve

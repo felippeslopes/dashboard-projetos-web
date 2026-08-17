@@ -1,0 +1,60 @@
+.task-filters {
+  padding: 1rem 1.1rem;
+  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.task-filters-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.task-filters-row .input {
+  width: auto;
+  flex: 1 1 160px;
+}
+
+.task-filters-search {
+  flex: 2 1 220px;
+}
+
+.task-filters-clear {
+  flex-shrink: 0;
+}
+
+.task-filters-statuses {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.status-chip {
+  appearance: none;
+  cursor: pointer;
+  border: 1px solid var(--rule);
+  background: var(--paper);
+  border-radius: 999px;
+  padding: 0.3rem 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: border-color 150ms ease, background-color 150ms ease;
+}
+
+.status-chip::before {
+  content: "";
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.status-chip--active {
+  border-color: currentColor;
+  background: color-mix(in srgb, currentColor 14%, var(--paper));
+}

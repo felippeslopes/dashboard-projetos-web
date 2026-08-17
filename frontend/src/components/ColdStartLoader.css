@@ -1,0 +1,40 @@
+.cold-start-loader {
+  padding: 2rem 0;
+  max-width: 360px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.cold-start-message {
+  color: var(--ink-muted);
+  font-size: 0.875rem;
+  margin: 0 0 1rem;
+}
+
+.cold-start-track {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--rule);
+  overflow: hidden;
+}
+
+.cold-start-bar {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 999px;
+  transition: width 200ms linear;
+}
+
+.cold-start-bar--pulsing {
+  animation: cold-start-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes cold-start-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}

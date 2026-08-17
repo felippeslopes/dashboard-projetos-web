@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { api } from "../services/api";
+import ColdStartLoader from "../components/ColdStartLoader";
 import type { ConfigStatusResponse, UserConfigResponse } from "../types/api";
 import "./ConnectSheet.css";
 
@@ -82,12 +83,7 @@ export default function ConnectSheet() {
   }
 
   if (status === "loading") {
-    return (
-      <div className="page-loading">
-        <span className="spinner" aria-hidden="true" />
-        Carregando...
-      </div>
-    );
+    return <ColdStartLoader />;
   }
 
   if (status === "redirect") {

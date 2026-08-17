@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { api } from "../services/api";
 import type { DashboardResponse } from "../types/api";
+import ColdStartLoader from "../components/ColdStartLoader";
 import ProjectStatCard from "../components/cards/ProjectStatCard";
 import ProjectsTable from "../components/table/ProjectsTable";
 import StatusPieChart from "../components/charts/StatusPieChart";
@@ -55,12 +56,7 @@ export default function Dashboard() {
   }, []);
 
   if (status === "loading") {
-    return (
-      <div className="page-loading">
-        <span className="spinner" aria-hidden="true" />
-        Carregando dashboard...
-      </div>
-    );
+    return <ColdStartLoader label="Carregando dashboard..." />;
   }
 
   if (status === "no-sheet") {

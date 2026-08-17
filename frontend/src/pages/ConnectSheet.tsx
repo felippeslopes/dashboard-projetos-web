@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { api } from "../services/api";
 import ColdStartLoader from "../components/ColdStartLoader";
+import SheetFormatGuide from "../components/SheetFormatGuide";
 import type { ConfigStatusResponse, UserConfigResponse } from "../types/api";
 import "./ConnectSheet.css";
 
@@ -119,6 +120,8 @@ export default function ConnectSheet() {
           Conectar uma nova planilha abaixo substitui essa conexão.
         </p>
       )}
+
+      <SheetFormatGuide />
 
       <div className="connect-steps">
         <div className="card connect-step">

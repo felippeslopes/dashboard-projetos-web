@@ -19,7 +19,7 @@ function renderSliceLabel(props: PieLabelRenderProps) {
   const percent = props.percent ?? 0;
   const value = Number(props.value) || 0;
   const name = String(props.name ?? "");
-  const radius = outerRadius + 14;
+  const radius = outerRadius + 18;
   const x = cx + radius * Math.cos(-midAngle * RADIAN);
   const y = cy + radius * Math.sin(-midAngle * RADIAN);
   const anchor = x > cx ? "start" : "end";
@@ -49,42 +49,44 @@ export default function StatusPieChart({ data }: StatusPieChartProps) {
       {data.length === 0 ? (
         <p className="chart-empty">Sem dados suficientes para o gráfico de status.</p>
       ) : (
-        <ResponsiveContainer width="100%" height={300}>
-          <PieChart margin={{ top: 24, right: 56, bottom: 24, left: 56 }}>
-            <Pie
-              data={data}
-              dataKey="quantidade"
-              nameKey="status"
-              cx="50%"
-              cy="50%"
-              innerRadius={44}
-              outerRadius={62}
-              paddingAngle={2}
-              stroke="var(--surface)"
-              strokeWidth={2}
-              label={renderSliceLabel}
-              labelLine={false}
-              isAnimationActive={false}
-            >
-              {data.map((entry) => (
-                <Cell
-                  key={entry.status}
-                  fill={colors[entry.status] ?? colors.Outros}
-                />
-              ))}
-            </Pie>
-            <Tooltip
-              contentStyle={{
-                background: "var(--surface)",
-                border: "1px solid var(--rule)",
-                borderRadius: "8px",
-                fontSize: "0.85rem",
-                color: "var(--ink)",
-              }}
-              itemStyle={{ color: "var(--ink)" }}
-            />
-          </PieChart>
-        </ResponsiveContainer>
+        <div className="pie-chart-wrap">
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart margin={{ top: 24, right: 56, bottom: 24, left: 56 }}>
+              <Pie
+                data={data}
+                dataKey="quantidade"
+                nameKey="status"
+                cx="50%"
+                cy="50%"
+                innerRadius="58%"
+                outerRadius="82%"
+                paddingAngle={2}
+                stroke="var(--surface)"
+                strokeWidth={2}
+                label={renderSliceLabel}
+                labelLine={false}
+                isAnimationActive={false}
+              >
+                {data.map((entry) => (
+                  <Cell
+                    key={entry.status}
+                    fill={colors[entry.status] ?? colors.Outros}
+                  />
+                ))}
+              </Pie>
+              <Tooltip
+                contentStyle={{
+                  background: "var(--surface)",
+                  border: "1px solid var(--rule)",
+                  borderRadius: "8px",
+                  fontSize: "0.85rem",
+                  color: "var(--ink)",
+                }}
+                itemStyle={{ color: "var(--ink)" }}
+              />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
       )}
     </div>
   );

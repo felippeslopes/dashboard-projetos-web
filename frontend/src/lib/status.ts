@@ -34,18 +34,18 @@ export function compareStatus(a: string, b: string): number {
 export const STATUS_CHART_COLORS: Record<"light" | "dark", Record<string, string>> = {
   light: {
     Planejado: "#2a78d6",
-    "Em andamento": "#eb6834",
+    "Em andamento": "#eda100",
     Concluído: "#1baf7a",
-    Atrasado: "#eda100",
-    Cancelado: "#e87ba4",
+    Atrasado: "#d6342e",
+    Cancelado: "#64748b",
     Outros: "#8b9390",
   },
   dark: {
     Planejado: "#3987e5",
-    "Em andamento": "#d95926",
+    "Em andamento": "#c98500",
     Concluído: "#199e70",
-    Atrasado: "#c98500",
-    Cancelado: "#d55181",
+    Atrasado: "#e5534b",
+    Cancelado: "#94a3b8",
     Outros: "#6f7a77",
   },
 };

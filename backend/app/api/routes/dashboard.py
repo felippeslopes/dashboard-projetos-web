@@ -24,12 +24,15 @@ def get_dashboard(user: AuthenticatedUser = Depends(get_current_user)) -> Dashbo
     except (SheetAccessError, SheetStructureError) as exc:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)) from exc
 
-    cards, grafico = dashboard_service.build_dashboard(parsed.tarefas)
+    resultado = dashboard_service.build_dashboard(parsed.tarefas)
 
     return DashboardResponse(
-        cards=cards,
+        cards=resultado.cards,
         tarefas=parsed.tarefas,
-        grafico_status=grafico,
+        grafico_status=resultado.grafico_status,
+        grafico_projeto=resultado.grafico_projeto,
+        grafico_responsavel=resultado.grafico_responsavel,
+        grafico_prazo=resultado.grafico_prazo,
         avisos=parsed.avisos,
         planilha_truncada=parsed.truncada,
     )

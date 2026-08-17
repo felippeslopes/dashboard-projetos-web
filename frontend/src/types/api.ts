@@ -20,10 +20,35 @@ export interface StatusBreakdown {
   quantidade: number;
 }
 
+export interface GroupBreakdown {
+  chave: string;
+  total: number;
+  concluidas: number;
+  atrasadas: number;
+  taxa_conclusao: number;
+}
+
+export interface PeriodoBreakdown {
+  periodo: string;
+  total: number;
+}
+
+export interface HistoricoPonto {
+  data: string;
+  total_tarefas: number;
+  concluidas: number;
+  atrasadas: number;
+  taxa_conclusao: number;
+}
+
 export interface DashboardResponse {
   cards: DashboardCards;
   tarefas: Tarefa[];
   grafico_status: StatusBreakdown[];
+  grafico_projeto: GroupBreakdown[];
+  grafico_responsavel: GroupBreakdown[];
+  grafico_prazo: PeriodoBreakdown[];
+  historico: HistoricoPonto[];
   avisos: string[];
   planilha_truncada: boolean;
 }

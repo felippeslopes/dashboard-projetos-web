@@ -1,0 +1,45 @@
+.chart-card-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-bottom: 0.75rem;
+}
+
+.chart-card-header h2 {
+  margin-bottom: 0;
+}
+
+.metric-switch {
+  display: inline-flex;
+  gap: 0.2rem;
+  padding: 0.2rem;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+}
+
+.metric-switch-btn {
+  appearance: none;
+  border: none;
+  background: none;
+  color: var(--ink-muted);
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 0.3rem 0.6rem;
+  border-radius: calc(var(--radius-sm) - 4px);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+.metric-switch-btn:hover {
+  color: var(--ink);
+}
+
+.metric-switch-btn--active {
+  background: var(--surface);
+  color: var(--accent);
+  box-shadow: var(--shadow);
+}

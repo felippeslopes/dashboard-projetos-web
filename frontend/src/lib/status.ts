@@ -49,3 +49,26 @@ export const STATUS_CHART_COLORS: Record<"light" | "dark", Record<string, string
     Outros: "#6f7a77",
   },
 };
+
+export type ChartMetric = "total" | "atrasadas" | "taxa_conclusao";
+
+// Mirrors --accent (light/dark) from global.css, plus the status colors
+// above -- same var()-in-SVG-attribute limitation, resolved to literals.
+export const METRIC_COLORS: Record<"light" | "dark", Record<ChartMetric, string>> = {
+  light: {
+    total: "#4a3aa7",
+    atrasadas: STATUS_CHART_COLORS.light.Atrasado,
+    taxa_conclusao: STATUS_CHART_COLORS.light.Concluído,
+  },
+  dark: {
+    total: "#9085e9",
+    atrasadas: STATUS_CHART_COLORS.dark.Atrasado,
+    taxa_conclusao: STATUS_CHART_COLORS.dark.Concluído,
+  },
+};
+
+export const METRIC_LABELS: Record<ChartMetric, string> = {
+  total: "Total",
+  atrasadas: "Atrasadas",
+  taxa_conclusao: "Taxa de conclusão",
+};

@@ -26,6 +26,12 @@
   margin-top: 1rem;
 }
 
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.5rem;
+}
+
 .view-switch {
   display: inline-flex;
   gap: 0.25rem;

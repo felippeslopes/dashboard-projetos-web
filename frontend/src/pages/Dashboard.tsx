@@ -6,6 +6,8 @@ import ColdStartLoader from "../components/ColdStartLoader";
 import ProjectStatCard from "../components/cards/ProjectStatCard";
 import ProjectsTable from "../components/table/ProjectsTable";
 import StatusPieChart from "../components/charts/StatusPieChart";
+import GroupBarChart from "../components/charts/GroupBarChart";
+import TimelineBarChart from "../components/charts/TimelineBarChart";
 import KanbanBoard from "../components/kanban/KanbanBoard";
 import TaskFilters, {
   DEFAULT_FILTERS,
@@ -163,6 +165,13 @@ export default function Dashboard() {
 
       <div className="dashboard-main">
         <StatusPieChart data={data.grafico_status} />
+
+        <div className="charts-grid">
+          <GroupBarChart title="Tarefas por Projeto" data={data.grafico_projeto} />
+          <GroupBarChart title="Tarefas por Responsável" data={data.grafico_responsavel} />
+        </div>
+
+        <TimelineBarChart data={data.grafico_prazo} />
 
         <div className="view-switch" role="tablist" aria-label="Modo de visualização">
           <button

@@ -14,27 +14,29 @@
   margin: 0;
 }
 
-.chart-legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem 1.1rem;
-  justify-content: center;
-  list-style: none;
-  margin: 0;
-  padding: 0 0 1rem;
-  font-size: 0.8rem;
+.pie-label-name {
+  font-weight: 700;
+  font-size: 10px;
+  fill: var(--ink);
 }
 
-.chart-legend li {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  color: var(--ink-muted);
+.pie-label-count {
+  font-size: 10px;
+  fill: var(--ink);
 }
 
-.chart-legend-swatch {
-  width: 0.6rem;
-  height: 0.6rem;
-  border-radius: 2px;
-  flex-shrink: 0;
+.pie-label-percent {
+  font-size: 9px;
+  fill: var(--ink-muted);
+}
+
+@media (max-width: 420px) {
+  .pie-label-name,
+  .pie-label-count {
+    font-size: 8.5px;
+  }
+
+  .pie-label-percent {
+    font-size: 7.5px;
+  }
 }

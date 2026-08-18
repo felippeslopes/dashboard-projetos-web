@@ -2,8 +2,13 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 
 from app.core.rate_limit import limiter
 from app.core.security import AuthenticatedUser, get_current_user
-from app.schemas.user_config import ConfigStatusResponse, ConnectSheetRequest, UserConfigResponse
-from app.services import sheet_connection_service
+from app.schemas.user_config import (
+    ConfigStatusResponse,
+    ConnectSheetRequest,
+    MicrosoftTokenRequest,
+    UserConfigResponse,
+)
+from app.services import ms_auth, sheet_connection_service
 from app.services.sheet_connection_service import InvalidSheetUrlError
 from app.services.sheets_provider import SheetAccessError
 
@@ -28,3 +33,22 @@ def connect_sheet(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
     except SheetAccessError as exc:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)) from exc
+
+
+@router.post("/microsoft-token", status_code=status.HTTP_204_NO_CONTENT)
+@limiter.limit("10/minute")
+def save_microsoft_token(
+    request: Request,
+    payload: MicrosoftTokenRequest,
+    user: AuthenticatedUser = Depends(get_current_user),
+) -> None:
+    """Guarda o access/refresh token do Microsoft Graph obtido no login,
+    pra poder ler/escrever no Excel Online depois sem depender da sessao
+    do navegador (que nao persiste esses tokens)."""
+    ms_auth.store_initial_token(
+        user.user_id,
+        user.access_token,
+        payload.access_token,
+        payload.refresh_token,
+        payload.expires_in,
+    )

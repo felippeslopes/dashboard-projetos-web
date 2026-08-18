@@ -15,3 +15,9 @@ class UserConfigResponse(BaseModel):
 class ConfigStatusResponse(BaseModel):
     service_account_email: str
     config: UserConfigResponse | None
+
+
+class MicrosoftTokenRequest(BaseModel):
+    access_token: str = Field(..., min_length=1)
+    refresh_token: str = Field(..., min_length=1)
+    expires_in: int = Field(..., gt=0)

@@ -7,6 +7,7 @@ import {
 } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "../lib/supabaseClient";
+import { api } from "../services/api";
 
 interface AuthContextValue {
   session: Session | null;
@@ -28,9 +29,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, newSession) => {
+    } = supabase.auth.onAuthStateChange((event, newSession) => {
       setSession(newSession);
       setLoading(false);
+
+      const isMicrosoftLogin =
+        event === "SIGNED_IN" && newSession?.user.app_metadata.provider === "azure";
+
+      if (isMicrosoftLogin) {
+        if (!newSession.provider_token || !newSession.provider_refresh_token) {
+          console.error(
+            "Login com Microsoft não retornou os tokens de acesso esperados — a conexão com o Excel Online não vai funcionar até logar novamente.",
+          );
+        } else {
+          api
+            .post("/config/microsoft-token", {
+              access_token: newSession.provider_token,
+              refresh_token: newSession.provider_refresh_token,
+              expires_in: newSession.expires_in ?? 3600,
+            })
+            .catch((err) => {
+              console.error("Não foi possível salvar o acesso à conta Microsoft:", err);
+            });
+        }
+      }
     });
 
     return () => subscription.unsubscribe();

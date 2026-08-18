@@ -9,6 +9,8 @@ class Settings(BaseSettings):
     supabase_anon_key: str
     supabase_service_key: str
     frontend_origin: str = "http://localhost:5173"
+    microsoft_client_id: str = ""
+    microsoft_client_secret: str = ""
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 

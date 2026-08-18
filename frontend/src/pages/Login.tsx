@@ -3,6 +3,17 @@ import { useAuth } from "../contexts/AuthContext";
 import { supabase } from "../lib/supabaseClient";
 import "./Login.css";
 
+function MicrosoftIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
+      <rect x="0" y="0" width="8.5" height="8.5" fill="#F25022" />
+      <rect x="9.5" y="0" width="8.5" height="8.5" fill="#7FBA00" />
+      <rect x="0" y="9.5" width="8.5" height="8.5" fill="#00A4EF" />
+      <rect x="9.5" y="9.5" width="8.5" height="8.5" fill="#FFB900" />
+    </svg>
+  );
+}
+
 function GoogleIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
@@ -44,13 +55,26 @@ export default function Login() {
     return <Navigate to="/dashboard" replace />;
   }
 
-  async function handleLogin() {
+  async function handleGoogleLogin() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo: window.location.origin },
     });
     if (error) {
       console.error("Erro ao iniciar login com Google:", error.message);
+    }
+  }
+
+  async function handleMicrosoftLogin() {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "azure",
+      options: {
+        redirectTo: window.location.origin,
+        scopes: "openid profile email offline_access Files.ReadWrite User.Read",
+      },
+    });
+    if (error) {
+      console.error("Erro ao iniciar login com Microsoft:", error.message);
     }
   }
 
@@ -61,15 +85,25 @@ export default function Login() {
           D
         </div>
         <h1>Dashboard de Projetos Web</h1>
-        <p>Conecte sua planilha do Google e acompanhe seus projetos em um só lugar.</p>
-        <button
-          type="button"
-          className="btn btn-primary login-google-btn"
-          onClick={handleLogin}
-        >
-          <GoogleIcon />
-          Entrar com Google
-        </button>
+        <p>Conecte sua planilha do Google Sheets ou Excel Online e acompanhe seus projetos em um só lugar.</p>
+        <div className="login-buttons">
+          <button
+            type="button"
+            className="btn btn-primary login-oauth-btn"
+            onClick={handleGoogleLogin}
+          >
+            <GoogleIcon />
+            Entrar com Google
+          </button>
+          <button
+            type="button"
+            className="btn login-oauth-btn"
+            onClick={handleMicrosoftLogin}
+          >
+            <MicrosoftIcon />
+            Entrar com Microsoft
+          </button>
+        </div>
       </div>
     </div>
   );

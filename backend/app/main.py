@@ -22,6 +22,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+@app.middleware("http")
+async def no_store_cache(request, call_next):
+    """Os dados vem de uma planilha externa que pode mudar a qualquer
+    momento -- nunca deixar o navegador (ou qualquer proxy no meio)
+    reaproveitar uma resposta antiga de GET /dashboard."""
+    response = await call_next(request)
+    response.headers["Cache-Control"] = "no-store"
+    return response
+
+
 app.include_router(health.router)
 app.include_router(config.router)
 app.include_router(dashboard.router)

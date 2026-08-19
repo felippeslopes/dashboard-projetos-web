@@ -12,7 +12,7 @@ async function authorizedFetch(path: string, init: RequestInit = {}): Promise<Re
     headers.set("Authorization", `Bearer ${token}`);
   }
 
-  return fetch(`${API_BASE_URL}${path}`, { ...init, headers });
+  return fetch(`${API_BASE_URL}${path}`, { ...init, headers, cache: "no-store" });
 }
 
 export const api = {

@@ -6,11 +6,14 @@ decisão relevante.
 
 ## Versão e escopo
 
-- **v0.1 (atual):** login Google (Supabase Auth) + 1 planilha Google
-  Sheets + 5 cards + tabela de tarefas (agrupadas por projeto) + gráfico
-  de pizza por status
-- **v0.2:** Excel Online / Microsoft Graph, demais gráficos, riscos,
-  marcos, página de Configurações, sincronização automática
+- **v0.1:** login Google (Supabase Auth) + 1 planilha Google Sheets + 5
+  cards + tabela de tarefas (agrupadas por projeto) + gráfico de pizza
+  por status
+- **v0.1.x (atual):** Kanban (leitura + escrita de status), gráficos por
+  projeto/responsável/prazo/tendência, login Microsoft + Excel Online
+  como segunda fonte de dados — adiantado do v0.2 original
+- **v0.2:** riscos, marcos, página de Configurações, sincronização
+  automática
 - **v1.0:** Docker Compose, testes completos, tratamento de erro com
   download de modelo, dark/light mode, README final
 
@@ -25,7 +28,10 @@ decisão relevante.
 - Repository Pattern + Service Layer: `repositories/` isola acesso a
   dados, `services/` concentra regra de negócio, `routes/` apenas orquestra
 - Camada de abstração de provedores de dados, permitindo trocar/adicionar
-  fontes (Excel Online, banco relacional) sem alterar o frontend
+  fontes (Excel Online, banco relacional) sem alterar o frontend —
+  implementada de forma pragmática (dispatch por `if/else` em
+  `config.provider`, não uma hierarquia de classes) dado o tamanho do
+  restante do produto; ver seção "Excel Online" abaixo
 
 ## Escrita na planilha (exceção ao read-only)
 
@@ -91,6 +97,65 @@ normalmente e o histórico simplesmente fica vazio.
   service account para o backend conseguir lê-la (instrução exibida na
   tela "Conectar Planilha")
 
+## Excel Online / Microsoft Graph (segundo provedor de dados)
+
+Diferente do Google, não existe equivalente simples de service account
+para arquivos pessoais do OneDrive — o acesso ao Excel Online é sempre
+**delegado**, usando o próprio token OAuth do usuário que logou com a
+Microsoft. Isso muda a arquitetura em pontos que vale registrar:
+
+- **Login Microsoft ≠ acesso ao Excel automaticamente.** O Supabase Auth
+  guarda a sessão do usuário, mas não persiste nem renova o
+  `provider_token`/`provider_refresh_token` do Microsoft — esses só
+  existem no client, uma vez, no momento do login. O frontend
+  (`AuthContext.tsx`) captura os dois no evento `SIGNED_IN` de um login
+  via `azure` e envia pro backend guardar (`POST
+  /config/microsoft-token`) numa tabela própria, `microsoft_tokens`
+  (RLS no mesmo padrão de `user_config`/`dashboard_snapshots`)
+- **Renovação de token é responsabilidade do backend** (`ms_auth.py`),
+  não do Supabase: troca o `refresh_token` guardado por um
+  `access_token` novo direto na Microsoft
+  (`login.microsoftonline.com/common/oauth2/v2.0/token`) sempre que o
+  guardado estiver a menos de 2 minutos de expirar. Usa
+  `MICROSOFT_CLIENT_ID`/`MICROSOFT_CLIENT_SECRET` — as mesmas
+  credenciais do app registrado no Azure/Entra ID, usadas também no
+  provedor Azure do Supabase
+- **Sem passo de "compartilhar com service account".** Como o acesso já
+  é o do próprio usuário logado, conectar um arquivo do Excel Online é
+  só colar o link — a tela "Conectar Planilha" detecta automaticamente
+  se o link é do Google Sheets ou do OneDrive/SharePoint (por padrão de
+  domínio na URL) e ajusta as instruções/fluxo sem precisar de um
+  seletor de provedor
+- **Resolução do link:** ao contrário do ID do Google (extraído por
+  regex da própria URL), o link de compartilhamento do OneDrive não
+  expõe o ID do arquivo — é resolvido chamando o Microsoft Graph
+  (`GET /shares/{id}/driveItem`, com o link codificado em base64url
+  prefixado por `u!`), que devolve `driveId` + `itemId`. Os dois ficam
+  guardados em `user_config` (colunas `drive_id` e `sheet_id`, essa
+  última reaproveitada pra guardar o `itemId`)
+- **Leitura sempre usa a propriedade `text` do range** (`GET
+  .../usedRange(valuesOnly=true)`), nunca `values` — evita lidar com
+  tipos nativos do Excel (data como número de série, etc.), mesmo
+  espírito do `FORMATTED_VALUE` do Google
+- **Cuidado com formato de data:** o Excel Online formata datas pelo
+  locale configurado no arquivo, não pelo idioma do conteúdo — uma
+  planilha em português pode mostrar `5/27/2026` (M/D/AAAA, sem zero à
+  esquerda) em vez de `27/05/2026`. O parser (`sheet_parsing.py`) tenta
+  `DD/MM/AAAA` primeiro (padrão BR/Google) e só cai pra `M/D/AAAA` como
+  fallback quando o dia só faz sentido nesse formato (>12) — descoberto
+  testando ao vivo contra um arquivo real, não era esperado de antemão
+- **Escrita do Kanban** segue a mesma função `update_status` (mesma
+  interface de `sheets_provider.py`, extraída em `excel_provider.py`),
+  mesma estratégia de conflito (lê antes de escrever, recusa com 409 se
+  divergir do esperado). Exige que o usuário tenha compartilhado/tenha
+  permissão de edição no próprio arquivo — não há conceito de "Editor"
+  separado como no Google, é a permissão da própria conta
+
+`sheets_provider.py` e `excel_provider.py` compartilham o parsing
+genérico (`sheet_parsing.py`: normalização de cabeçalho, parse de data,
+tolerância a erro linha a linha) — nenhuma das regras da seção "Schema
+da planilha" abaixo muda por provedor.
+
 ## Schema da planilha (v0.1)
 
 Cada linha da planilha é uma **Tarefa** (não um projeto inteiro — um
@@ -124,7 +189,7 @@ truncamento na resposta.
 
 | Vetor | Risco | Mitigação |
 |---|---|---|
-| Link da planilha | SSRF (backend usado como proxy de ataque) | Extrair apenas o ID via regex; nunca fazer fetch da URL crua; chamar somente a API oficial (Google Sheets API / Microsoft Graph) com esse ID |
+| Link da planilha | SSRF (backend usado como proxy de ataque) | Nunca fazer fetch da URL crua. Google: extrai só o ID via regex. Excel: a URL é passada como parâmetro pra API oficial do Microsoft Graph resolver (`/shares/{id}/driveItem`), quem faz o fetch é a Microsoft, não o backend |
 | Conteúdo da planilha | Formula Injection (células iniciando com `=`, `+`, `-`, `@`) | Leitura via Google Sheets API com `valueRenderOption="FORMATTED_VALUE"` — o backend sempre recebe o valor já calculado pelo Google, nunca a fórmula bruta, e nunca faz `eval`/interpretação do conteúdo |
 | Conteúdo da planilha | XSS via nome de projeto/campo livre | Nunca usar `dangerouslySetInnerHTML` com dado vindo da planilha; renderização padrão do React (que já escapa texto) |
 | Planilha muito grande | DoS por volume de linhas | Limite de linhas processadas + paginação, com mensagem amigável se exceder |
@@ -142,8 +207,10 @@ corrigida for publicada.
 ## Segredos e variáveis de ambiente
 
 - Backend: `GOOGLE_SHEETS_CREDENTIALS_JSON`, `SUPABASE_URL`,
-  `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_KEY`, `FRONTEND_ORIGIN` —
-  nunca versionados, sempre via `.env`
+  `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_KEY`, `FRONTEND_ORIGIN`
+  (aceita múltiplos domínios separados por vírgula),
+  `MICROSOFT_CLIENT_ID`, `MICROSOFT_CLIENT_SECRET` — nunca versionados,
+  sempre via `.env`
 - Frontend: apenas `SUPABASE_ANON_KEY` (pública por design, protegida
   por RLS) — nenhum secret sensível no cliente
 

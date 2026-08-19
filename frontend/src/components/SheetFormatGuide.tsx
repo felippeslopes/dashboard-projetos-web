@@ -30,6 +30,10 @@ export default function SheetFormatGuide() {
       <summary>Ver formato esperado da planilha</summary>
 
       <div className="sheet-format-body">
+        <p className="sheet-format-hint">
+          Vale para os dois provedores — Google Sheets e Excel Online.
+        </p>
+
         <section>
           <h3>Colunas</h3>
           <p className="sheet-format-hint">

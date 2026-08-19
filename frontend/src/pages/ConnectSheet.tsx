@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { api } from "../services/api";
+import { useAuth } from "../contexts/AuthContext";
 import ColdStartLoader from "../components/ColdStartLoader";
 import SheetFormatGuide from "../components/SheetFormatGuide";
 import type { ConfigStatusResponse, UserConfigResponse } from "../types/api";
@@ -12,6 +13,8 @@ export default function ConnectSheet() {
   const [searchParams] = useSearchParams();
   const forceReconnect = searchParams.get("trocar") === "1";
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const loggedInWithMicrosoft = user?.app_metadata.provider === "azure";
 
   const [status, setStatus] = useState<Status>("loading");
   const [serviceAccountEmail, setServiceAccountEmail] = useState("");
@@ -111,7 +114,7 @@ export default function ConnectSheet() {
             </Link>
           )}
         </div>
-        <p>Aponte o sistema para a planilha do Google Sheets com suas tarefas.</p>
+        <p>Aponte o sistema para a planilha do Google Sheets ou o arquivo do Excel Online com suas tarefas.</p>
       </div>
 
       {currentConfig && (
@@ -127,43 +130,60 @@ export default function ConnectSheet() {
         <div className="card connect-step">
           <span className="connect-step-number">1</span>
           <div className="connect-step-body">
-            <p>Abra sua planilha do Google Sheets.</p>
+            <p>
+              Abra sua planilha do Google Sheets ou o arquivo do Excel Online
+              com as tarefas.
+            </p>
           </div>
         </div>
 
-        <div className="card connect-step">
-          <span className="connect-step-number">2</span>
-          <div className="connect-step-body">
-            <p>
-              Clique em &quot;Compartilhar&quot; e adicione o e-mail abaixo com
-              permissão de <strong>Editor</strong> (necessário para o Kanban
-              salvar mudanças de status na planilha):
-            </p>
-            <div className="connect-email-row">
-              <code className="code-chip">{serviceAccountEmail}</code>
-              <button type="button" className="btn" onClick={handleCopyEmail}>
-                {copied ? "Copiado!" : "Copiar"}
-              </button>
+        {loggedInWithMicrosoft ? (
+          <div className="card connect-step">
+            <span className="connect-step-number">2</span>
+            <div className="connect-step-body">
+              <p>
+                Como você entrou com a conta Microsoft, <strong>não precisa
+                compartilhar com ninguém</strong> — o acesso já é o da sua
+                própria conta. Clique em &quot;Compartilhar&quot; →
+                &quot;Copiar link&quot; só pra pegar o endereço do arquivo.
+              </p>
             </div>
           </div>
-        </div>
+        ) : (
+          <div className="card connect-step">
+            <span className="connect-step-number">2</span>
+            <div className="connect-step-body">
+              <p>
+                Clique em &quot;Compartilhar&quot; e adicione o e-mail abaixo com
+                permissão de <strong>Editor</strong> (necessário para o Kanban
+                salvar mudanças de status na planilha):
+              </p>
+              <div className="connect-email-row">
+                <code className="code-chip">{serviceAccountEmail}</code>
+                <button type="button" className="btn" onClick={handleCopyEmail}>
+                  {copied ? "Copiado!" : "Copiar"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="card connect-step">
           <span className="connect-step-number">3</span>
           <div className="connect-step-body">
-            <p>Cole abaixo o link da planilha compartilhada.</p>
+            <p>Cole abaixo o link compartilhado.</p>
           </div>
         </div>
       </div>
 
       <form className="card connect-form" onSubmit={handleSubmit}>
         <div className="field">
-          <label htmlFor="sheet-url">Link da planilha</label>
+          <label htmlFor="sheet-url">Link da planilha ou do arquivo Excel</label>
           <input
             id="sheet-url"
             className="input"
             type="url"
-            placeholder="https://docs.google.com/spreadsheets/d/..."
+            placeholder="https://docs.google.com/spreadsheets/d/... ou https://1drv.ms/..."
             value={sheetUrl}
             onChange={(event) => setSheetUrl(event.target.value)}
             required

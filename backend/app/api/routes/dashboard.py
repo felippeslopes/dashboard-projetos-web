@@ -3,11 +3,32 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 from app.core.rate_limit import limiter
 from app.core.security import AuthenticatedUser, get_current_user
 from app.repositories import snapshot_repo, user_config_repo
+from app.repositories.user_config_repo import EXCEL_ONLINE, UserConfigRecord
 from app.schemas.project import DashboardResponse, HistoricoPonto, UpdateStatusRequest
-from app.services import dashboard_service, sheets_provider
-from app.services.sheets_provider import SheetAccessError, SheetConflictError, SheetStructureError
+from app.services import dashboard_service, excel_provider, ms_auth, sheets_provider
+from app.services.ms_auth import MicrosoftAuthError
+from app.services.sheet_parsing import SheetAccessError, SheetConflictError, SheetStructureError
 
 router = APIRouter(prefix="/dashboard", tags=["dashboard"])
+
+
+def _fetch_tarefas(config: UserConfigRecord, user: AuthenticatedUser):
+    if config.provider == EXCEL_ONLINE:
+        graph_token = ms_auth.get_valid_graph_token(user.user_id, user.access_token)
+        return excel_provider.fetch_tarefas(config.drive_id, config.sheet_id, graph_token)
+    return sheets_provider.fetch_tarefas(config.sheet_id)
+
+
+def _update_status(
+    config: UserConfigRecord, user: AuthenticatedUser, linha_planilha: int, novo_status: str, status_esperado: str
+) -> None:
+    if config.provider == EXCEL_ONLINE:
+        graph_token = ms_auth.get_valid_graph_token(user.user_id, user.access_token)
+        excel_provider.update_status(
+            config.drive_id, config.sheet_id, linha_planilha, novo_status, status_esperado, graph_token
+        )
+        return
+    sheets_provider.update_status(config.sheet_id, linha_planilha, novo_status, status_esperado)
 
 
 @router.get("", response_model=DashboardResponse)
@@ -20,9 +41,11 @@ def get_dashboard(user: AuthenticatedUser = Depends(get_current_user)) -> Dashbo
         )
 
     try:
-        parsed = sheets_provider.fetch_tarefas(config.sheet_id)
+        parsed = _fetch_tarefas(config, user)
     except (SheetAccessError, SheetStructureError) as exc:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)) from exc
+    except MicrosoftAuthError as exc:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(exc)) from exc
 
     resultado = dashboard_service.build_dashboard(parsed.tarefas)
 
@@ -74,10 +97,10 @@ def update_tarefa_status(
         )
 
     try:
-        sheets_provider.update_status(
-            config.sheet_id, linha_planilha, payload.status, payload.status_esperado
-        )
+        _update_status(config, user, linha_planilha, payload.status, payload.status_esperado)
     except SheetConflictError as exc:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
     except (SheetAccessError, SheetStructureError) as exc:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)) from exc
+    except MicrosoftAuthError as exc:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(exc)) from exc
